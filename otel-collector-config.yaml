@@ -6,11 +6,9 @@ receivers:
       http:
         endpoint: 0.0.0.0:4318
 
-# processors:
-#   probabilistic_sampler/logs:
-#     sampling_percentage: 10
-#     attribute_source: record
-#     from_attribute: value # value to base randomness on
+processors:
+  probabilistic_sampler/logs:
+    sampling_percentage: 10
 
 exporters:
   debug:
@@ -20,5 +18,5 @@ service:
   pipelines:
     logs:
       receivers: [otlp]
-      # processors: [probabilistic_sampler/logs]
+      processors: [probabilistic_sampler/logs]
       exporters: [debug]

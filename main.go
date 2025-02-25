@@ -69,7 +69,7 @@ func main() {
 func newResource() (*resource.Resource, error) {
 	return resource.Merge(resource.Default(),
 		resource.NewWithAttributes(semconv.SchemaURL,
-			semconv.ServiceName("log-exporter-demo"),
+			semconv.ServiceName("log-sampling-go"),
 			semconv.ServiceVersion("0.1.0"),
 		))
 }

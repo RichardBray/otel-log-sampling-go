@@ -8,7 +8,19 @@ receivers:
 
 processors:
   probabilistic_sampler/logs:
-    sampling_percentage: 10
+    sampling_percentage: 0
+
+  tail_sampling:
+    decision_wait: 10s
+    num_traces: 10
+    expected_new_traces_per_sec: 10
+    policies:
+      [
+        {
+          name: test-policy-1,
+          type: always_sample
+        },
+      ]
 
 exporters:
   debug:
@@ -19,4 +31,9 @@ service:
     logs:
       receivers: [otlp]
       processors: [probabilistic_sampler/logs]
+      # processors: [tail_sampling]
+      exporters: [debug]
+    traces:
+      receivers: [otlp]
+      # processors: [tail_sampling]
       exporters: [debug]

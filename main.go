@@ -18,6 +18,9 @@ func main() {
 	ctx := context.Background()
 
 	res, err := newResource()
+	if err != nil {
+		panic("failed to create resource: " + err.Error())
+	}
 
 	// Logs
 
@@ -58,11 +61,13 @@ func main() {
 	for {
 		counter++
 		ctx, span := tracer.Start(ctx, "increment-counter")
-		defer span.End()
+
 		span.SetAttributes(attribute.Int("counter", counter))
 
 		logger.InfoContext(ctx, "Counter incremented", "value", counter, "timestamp", time.Now())
 		time.Sleep(1 * time.Second)
+
+		span.End()
 	}
 }
 

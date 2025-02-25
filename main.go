@@ -28,7 +28,10 @@ func main() {
 
 	for {
 		counter++
-		logger.Info("Counter incremented", "value", counter, "timestamp", time.Now())
+		logger.Info("Counter incremented",
+			"value", counter,
+			"timestamp", time.Now(),
+		)
 		time.Sleep(1 * time.Second)
 	}
 }

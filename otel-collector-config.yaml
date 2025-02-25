@@ -7,7 +7,10 @@ receivers:
         endpoint: 0.0.0.0:4318
 
 processors:
-  batch:
+  probabilistic_sampler/logs:
+    sampling_percentage: 10
+    attribute_source: record
+    from_attribute: value
 
 exporters:
   debug:
@@ -17,5 +20,5 @@ service:
   pipelines:
     logs:
       receivers: [otlp]
-      processors: [batch]
+      processors: [probabilistic_sampler/logs]
       exporters: [debug]

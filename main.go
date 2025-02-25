@@ -2,16 +2,18 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"go.opentelemetry.io/contrib/bridges/otelslog"
 	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploghttp"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
 	"go.opentelemetry.io/otel/sdk/log"
 	"go.opentelemetry.io/otel/sdk/resource"
 	"go.opentelemetry.io/otel/sdk/trace"
-	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
+	semconv "go.opentelemetry.io/otel/semconv/v1.26.0"
 )
 
 func main() {
@@ -48,6 +50,7 @@ func main() {
 	traceProvider := trace.NewTracerProvider(
 		trace.WithBatcher(traceExporter),
 		trace.WithResource(res),
+		trace.WithSampler(trace.AlwaysSample()),
 	)
 
 	defer traceProvider.Shutdown(ctx)
@@ -64,7 +67,22 @@ func main() {
 
 		span.SetAttributes(attribute.Int("counter", counter))
 
-		logger.InfoContext(ctx, "Counter incremented", "value", counter, "timestamp", time.Now())
+		// logger.InfoContext(ctx, "Counter incremented", "value", counter, "timestamp", time.Now())
+
+		if counter%5 == 0 {
+			err := fmt.Errorf("simulated error on count %d", counter)
+			span.SetStatus(codes.Error, err.Error())
+			span.RecordError(err)
+			logger.ErrorContext(ctx, "Counter increment failed",
+				"error", err,
+				"value", counter,
+				"timestamp", time.Now())
+		} else {
+			logger.InfoContext(ctx, "Counter incremented",
+				"value", counter,
+				"timestamp", time.Now())
+		}
+
 		time.Sleep(1 * time.Second)
 
 		span.End()

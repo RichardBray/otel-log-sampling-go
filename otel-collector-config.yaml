@@ -10,7 +10,7 @@ processors:
   probabilistic_sampler/logs:
     sampling_percentage: 10
     attribute_source: record
-    from_attribute: value
+    from_attribute: value # value to base randomness on
 
 exporters:
   debug:

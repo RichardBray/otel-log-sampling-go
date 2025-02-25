@@ -25,7 +25,33 @@ The project consists of:
 
 2. Install dependencies:
    ```bash
-   go mod download
+   go mod downloa
+This configuration:
+- Receives OTLP logs via gRPC (4317) and HTTP (4318)
+- Processes logs in batches
+- Exports logs to debug output for demonstration
+
+## Running the Application
+
+1. Start the OpenTelemetry Collector:
+   ```bash
+   docker-compose up
+   ```
+
+2. Run the Go application:
+   ```bash
+   go run main.go
+   ```
+
+The application will:
+- Initialize an OTLP HTTP log exporter
+- Create a logger provider with batch processing
+- Generate logs every second with an incrementing counter
+
+## Code Example
+
+The main application logic can be found in `main.go`:
+d
    ```
 
 ## Configuration

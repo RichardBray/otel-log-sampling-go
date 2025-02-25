@@ -5,18 +5,29 @@ import (
 	"time"
 
 	"go.opentelemetry.io/contrib/bridges/otelslog"
+	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploghttp"
+	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
 	"go.opentelemetry.io/otel/sdk/log"
+	"go.opentelemetry.io/otel/sdk/resource"
+	"go.opentelemetry.io/otel/sdk/trace"
+	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
 )
 
 func main() {
 	ctx := context.Background()
+
+	res, err := newResource()
+
+	// Logs
+
 	logExporter, err := otlploghttp.New(ctx, otlploghttp.WithInsecure())
 	if err != nil {
 		panic("failed to create exporter: " + err.Error())
 	}
 
 	logProvider := log.NewLoggerProvider(
+		log.WithResource(res),
 		log.WithProcessor(log.NewBatchProcessor(logExporter)),
 	)
 
@@ -24,11 +35,41 @@ func main() {
 
 	logger := otelslog.NewLogger("log-sampler-demo", otelslog.WithLoggerProvider(logProvider))
 
+	// Traces
+
+	traceExporter, err := otlptracehttp.New(ctx, otlptracehttp.WithInsecure())
+	if err != nil {
+		panic("failed to create trace exporter: " + err.Error())
+	}
+
+	traceProvider := trace.NewTracerProvider(
+		trace.WithBatcher(traceExporter),
+		trace.WithResource(res),
+	)
+
+	defer traceProvider.Shutdown(ctx)
+
+	tracer := traceProvider.Tracer("demo-tracer")
+
+	// Counter
+
 	counter := 0
 
 	for {
 		counter++
-		logger.Info("Counter incremented", "value", counter, "timestamp", time.Now())
+		ctx, span := tracer.Start(ctx, "increment-counter")
+		defer span.End()
+		span.SetAttributes(attribute.Int("counter", counter))
+
+		logger.InfoContext(ctx, "Counter incremented", "value", counter, "timestamp", time.Now())
 		time.Sleep(1 * time.Second)
 	}
+}
+
+func newResource() (*resource.Resource, error) {
+	return resource.Merge(resource.Default(),
+		resource.NewWithAttributes(semconv.SchemaURL,
+			semconv.ServiceName("log-exporter-demo"),
+			semconv.ServiceVersion("0.1.0"),
+		))
 }

@@ -42,7 +42,10 @@ func main() {
 
 	// Traces
 
-	traceExporter, err := otlptracehttp.New(ctx, otlptracehttp.WithInsecure())
+	traceExporter, err := otlptracehttp.New(
+		ctx,
+		otlptracehttp.WithInsecure(),
+	)
 	if err != nil {
 		panic("failed to create trace exporter: " + err.Error())
 	}
@@ -50,7 +53,6 @@ func main() {
 	traceProvider := trace.NewTracerProvider(
 		trace.WithBatcher(traceExporter),
 		trace.WithResource(res),
-		trace.WithSampler(trace.AlwaysSample()),
 	)
 
 	defer traceProvider.Shutdown(ctx)
@@ -66,8 +68,6 @@ func main() {
 		ctx, span := tracer.Start(ctx, "increment-counter")
 
 		span.SetAttributes(attribute.Int("counter", counter))
-
-		// logger.InfoContext(ctx, "Counter incremented", "value", counter, "timestamp", time.Now())
 
 		if counter%5 == 0 {
 			err := fmt.Errorf("simulated error on count %d", counter)

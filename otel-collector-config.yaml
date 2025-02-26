@@ -10,18 +10,31 @@ processors:
   probabilistic_sampler/logs:
     sampling_percentage: 0
 
-  tail_sampling:
-    decision_wait: 10s
-    num_traces: 100
-    expected_new_traces_per_sec: 1
-    policies:
-      [
-        {
-          name: errors,
-          type: status_code,
-          status_code: {status_codes: [ERROR]}
-        },
-      ]
+  probabilistic_sampler:
+    sampling_percentage: 15.4
+    mode: hash_seed
+    hash_seed: 1234
+
+  # tail_sampling:
+  #   decision_wait: 10s
+  #   num_traces: 100
+  #   expected_new_traces_per_sec: 1
+  #   decision_cache:
+  #     sampled_cache_size: 100_000
+  #     non_sampled_cache_size: 100_000
+  #   policies:
+  #     [
+  #       {
+  #         name: errors,
+  #         type: status_code,
+  #         status_code: {status_codes: [ERROR]}
+  #       },
+  #       {
+  #         name: prob-10,
+  #         type: probabilistic,
+  #         probabilistic: {sampling_percentage: 10}
+  #       },
+  #     ]
 
 exporters:
   debug:
@@ -31,10 +44,9 @@ service:
   pipelines:
     logs:
       receivers: [otlp]
-      processors: [probabilistic_sampler/logs]
-      # processors: [tail_sampling]
+      # processors: [probabilistic_sampler/logs]
       exporters: [debug]
     traces:
       receivers: [otlp]
-      processors: [tail_sampling]
+      processors: [probabilistic_sampler]
       exporters: [debug]
